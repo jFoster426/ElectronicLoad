@@ -1,0 +1,124 @@
+* PSpice Model Editor - Version 17.2.0
+*$
+.SUBCKT IXXK300N60B3 C G E 
+*********************************************************************
+*Note:                                                              *
+* Althought models can be a useful tool in evaluating device        *
+* performance, they cannot model exact device performance           *
+* under all conditions, nor are they intended to replace            *
+* bread boarding for final verification. Therefore IXYS does        *
+* not assume any liability arsing from their use.  IXYS reserves    *
+* the right to change models without prior notice. The Pspice model *
+* does not constitute product data sheet. Designer should refer to  *
+* the data sheet to guranteed the limit and specification.          *
+*********************************************************************
+** model generated on Feb 28, 2022
+** Note: this model does not model third quadrant operation
+.FUNC RC(X1) {limit(-0.001*X1+0.0052,0.0025,0.004)}
+.param Rg=1
+L_C  C CA 3n
+R_CC C CA 3
+L_E   VA E  3n
+R_EE  VA E  0.001
+V_E   VE VA 0.000
+G_C   CA VC  value={V(CA,VC)/RC(V(C,E))}
+*R_C   CA VC  0.0035
+V_G  G G1 0
+L_G   G1 VG0  6n
+R_GG  G1 VG0  5
+CGE  VG VA  13.25n
+R_G VG0 VG 1.2
+X_cg VC VG C_cg_300N60B3 PARAMS: Rg={Rg} 
+X_Ce VC VA C_ce_300N60B3
+M1   VD VG VE1 VE1 MOS1 W=1u L=1u
+D_S  VE1 VE Dun
+X_m1 VG VD VE  300N60B3_CH
+***
+E_Vt VTf 0 value={I(V_E)}
+R_VTF VTF Vsen 0.048
+G_VTF Vsen 0 value={limit(-0.0333*Rg+1.0333,0.7,1)*0.9e-6*ddt(V(Vsen))}
+G_T CA VA value={max((0.98*V(Vsen)-I(V_E)),0)}
+*****
+*******
+E_comp V_Ecomp 0 value={V(VC,VG)}
+R_comp V_Ecomp 0 100e6
+*G_comp V_Ecomp VG value={if(I(V_G)>0,8p,80p)*ddt(V(V_Ecomp))}
+************
+****************
+Q1   VE VD VC VINTERALPNP
+D_SD  VE1 VD DO
+D_Bd  VE1 VE Dun
+.MODEL Dun D
+R_leak C E 1000e6
+.MODEL VINTERALPNP PNP
++ IS=5.07e-21
++ NF=0.650
++ BF=0.966
++ CJE=1.28e-12
++ TF=2e-12
++ XTB=1.3204
++ EG=1.22
+.MODEL DO D
++ IS=1.0e-18
++ BV=600
++ CJO=2.5e-12
++ VJ=0.38
++ M=0.84
+*
+.MODEL MOS1 NMOS LEVEL=1
++IS=1e-32
++VTO=3
++LAMBDA=3.26605e-05
++KP=0.0001
+.ENDS
+*$
+.SUBCKT C_cg_300N60B3 Ds_C Dg_g PARAMS: Rg=1 
+*.param soft_sw_cds=1
+.param CdsAdj=2
+G_Cds Ds_C Dg_g value={limit(-0.0556*Rg+1.0556,0.5,1.0)*(V(LowVH))*I(V_set)*(1e12)}
+E_set V_CurrentP V_CurrentN Ds_C Dg_g 1
+C_set V_CurrentP 0 1e-12
+V_set 0 V_CurrentN 0
+E_LowVH LowVH 0 TABLE {abs(V(Ds_C)-V(Dg_g))}=(
++(0.1,3500e-12)
++(5,2410e-12)
++(10,1980e-12)
++(15,398e-12)
++(20,288e-12)
++(30,219e-12)
++(40,199e-12))
+.FUNC Set(X1) {180e-12*Pwr((25/abs(X1)),0.1)}
+*E_constant Vconst 0 value={Set(V(Ds_C,Dg_g))}
+.ENDS
+*$
+.SUBCKT C_ce_300N60B3 Ds_C Ds_E
+*.param soft_sw_cds=1
+.param CdsAdj=2
+G_Cds Ds_C Ds_E value={(V(LowVH))*I(V_set)*(1e12)}
+E_set V_CurrentP V_CurrentN Ds_C Ds_E 1
+C_set V_CurrentP 0 1e-12
+V_set 0 V_CurrentN 0
+E_LowVH LowVH 0 TABLE {abs(V(Ds_C)-V(Ds_E))}=(
++(0.1,3200e-12)
++(5,1890e-12)
++(10,1580e-12)
++(15,701e-12)
++(20,587e-12)
++(30,460e-12)
++(40,391e-12))
+.FUNC Set1(X1) {900e-12*Pwr((25/abs(X1)),0.3)}
+.ENDS
+*$
+.subckt 300N60B3_CH gg2 cc1 ee2
+.FUNC GB_1st(X1) {0.5*Gate_Lim(X1)+6.5}
+.FUNC GB_SEL_A(X2) {IF(X2<13, Gate_Lim(X2),GB_1st(X2))}
+.FUNC Gate_Lim(X8) {limit(X8,5.8,20)}
+*.FUNC Gate_In_Lim(X9) {limit(X9,10,15)}
+*.FUNC Gate_In_C(X10) {-0.1821*Gate_In_Lim(X10)+3.6732}
+*.FUNC Gate_In_C(X10) {0.0349*pwr(Gate_In_Lim(X10),2)-1.065*Gate_Lim(X10)+9.1221}
+.FUNC Vch_Postive(XA,XB) {(1+0.000032*abs(XB))*0.50*7.8*PWR((GB_SEL_A(XA)-5.8),2.2)*(1-exp(-(1.65)*abs(XB)))}
+G_ch cc1 ss1 Value={IF((V(cc1)-V(ee2))<0,(-Vch_Postive(V(gg2,ee2),V(cc1,ee2))), Vch_Postive(V(gg2,ee2),V(cc1,ee2)))}
+R_dd cc1 ee2 200e6
+V_ss ss1 ee2 0.0
+.ends
+*$
