@@ -1,0 +1,26 @@
+Removed Member From Class: ClassName=LCD PCB Member=J1
+Added Component: Designator=J?(SULLINS_PBC08DFAN)
+Add component (AddParameter): Name = "CreatedBy"; Value = "Judd Foster"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "HelpURL"; Value = "https://s3.amazonaws.com/catalogspreads-pdf/PAGE112-113%20.100%20MALE%20HDR.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer 1"; Value = "Sullins Connector Solutions"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer 1 Part Number"; Value = "PBC08DFAN"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Part Name"; Value = "Term,Header,2x8 Pin,2.54mm,Top,Thru"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Vendor 1"; Value = "DigiKey"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Vendor 1 Part Number"; Value = "S2211E-08-ND"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=LCD.D0 Pin=J?-1
+Added Pin To Net: NetName=LCD.E Pin=J?-2
+Added Pin To Net: NetName=LCD.D1 Pin=J?-3
+Added Pin To Net: NetName=LCD.RW Pin=J?-4
+Added Pin To Net: NetName=LCD.D2 Pin=J?-5
+Added Pin To Net: NetName=LCD.RS Pin=J?-6
+Added Pin To Net: NetName=LCD.D3 Pin=J?-7
+Added Pin To Net: NetName=LCD.VDD Pin=J?-8
+Added Pin To Net: NetName=LCD.D4 Pin=J?-9
+Added Pin To Net: NetName=LCD.VSS Pin=J?-10
+Added Pin To Net: NetName=LCD.D5 Pin=J?-11
+Added Pin To Net: NetName=LCD.VO Pin=J?-12
+Added Pin To Net: NetName=LCD.D6 Pin=J?-13
+Added Pin To Net: NetName=LCD.A Pin=J?-14
+Added Pin To Net: NetName=LCD.D7 Pin=J?-15
+Added Pin To Net: NetName=LCD.K Pin=J?-16
+Added Member To Class: ClassName=LCD PCB Member=Component J? PBC08DFAN
