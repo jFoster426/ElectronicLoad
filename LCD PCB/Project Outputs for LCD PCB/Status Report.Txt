@@ -1,0 +1,24 @@
+Project Outputs Generation Report
+---------------------------------
+Start Output Generation At 10:26:05 AM On 2026-02-16
+
+Output: Gerber X2 Files
+Type  : GerberX2
+From  : Variant [[No Variations]] of PCB Document [LCD PCB.PcbDoc]
+   Generated File[LCD PCB_Copper_Signal_Top.gbr]
+   Generated File[LCD PCB_Copper_Signal_Bot.gbr]
+   Generated File[LCD PCB_Legend_Top.gbr]
+   Generated File[LCD PCB_Legend_Bot.gbr]
+   Generated File[LCD PCB_Soldermask_Top.gbr]
+   Generated File[LCD PCB_Soldermask_Bot.gbr]
+   Generated File[LCD PCB_Paste_Top.gbr]
+   Generated File[LCD PCB_Paste_Bot.gbr]
+   Generated File[LCD PCB_Profile.gbr]
+   Generated File[LCD PCB_NPTH_Drill.gbr]
+   Generated File[LCD PCB_PTH_Drill.gbr]
+
+
+Files Generated   : 11
+Documents Printed : 0
+
+Finished Output Generation At 10:26:05 AM On 2026-02-16
