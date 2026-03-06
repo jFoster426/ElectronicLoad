@@ -160,19 +160,11 @@ int main(void)
     gpio_set(GPIOB, 7);         // Enable +15V/-5V gate power supplies
 
     lcd_init();
-    // lcd_write_data('H');
-    // lcd_write_data('e');
-    // lcd_write_data('l');
-    // lcd_write_data('l');
-    // lcd_write_data('o');
-    // lcd_write_data(',');
-    // lcd_write_data(' ');
-    // lcd_write_data('W');
-    // lcd_write_data('o');
-    // lcd_write_data('r');
-    // lcd_write_data('l');
-    // lcd_write_data('d');
-    // lcd_write_data('!');
+    strcpy(lcd_l1, "   Hello,  World!   ");
+    strcpy(lcd_l2, "  Electronic  Load  ");
+    strcpy(lcd_l3, "    Judd  Foster    ");
+    strcpy(lcd_l4, "Firmware: 5 MAR 2026");
+    lcd_write_frame();
 
     float current_limit_amps = 0.1;
     const float DAC_VOLTS_PER_AMP = 0.1362;

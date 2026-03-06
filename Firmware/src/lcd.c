@@ -32,21 +32,22 @@ void lcd_init(void)
 
     delay_ms(50);
 
+    // HD44780U datasheet p. 45 - Initializing by Instruction
     lcd_write_instruction(0b00110000);
     delay_ms(15);
     lcd_write_instruction(0b00110000);
     delay_ms(5);
     lcd_write_instruction(0b00110000);
     delay_ms(1);
-    lcd_write_instruction(0b00111000);
+    lcd_write_instruction(0b00111000);  // Data length 8 bits, 2 lines, 5x10 font
     delay_ms(8);
-    lcd_write_instruction(0x08); // display OFF
+    lcd_write_instruction(0x08); // display off
     delay_ms(8);
-    lcd_write_instruction(0b00000001);
+    lcd_write_instruction(0x01); // clear entire display
     delay_ms(8);
-    lcd_write_instruction(0b00000110);
+    lcd_write_instruction(0x06); // cursor moves right
     delay_ms(8);
-    lcd_write_instruction(0x0C); // display ON
+    lcd_write_instruction(0x0C); // display on, cursor off
 }
 
 void lcd_set_data_bus_output(void)
@@ -119,6 +120,36 @@ void lcd_write_data(uint8_t d)
     lcd_write_rs(LCD_RS_MODE_DATA);
     lcd_write_data_bus(d);
     lcd_write_e();
+}
+
+void lcd_write_frame(void)
+{
+    // Mapping to a 20x4 display is equivalent to a 40x2 display:
+    // Line 1 (Address 00h-13h): Characters 1-20 of the first row
+    lcd_write(0x80 | 0x00);  // Move cursor to line 1 position 1
+    for (uint8_t i = 0; i < 20; i++)
+    {
+        lcd_write(lcd_l1[i]);
+    }
+    // Line 2 (Address 40h-53h): Characters 1-20 of the second row
+    lcd_write(0x80 | 0x40);  // Move cursor to line 1 position 1
+    for (uint8_t i = 0; i < 20; i++)
+    {
+        lcd_write(lcd_l2[i]);
+    }
+    // Line 3 (Address 14h-27h): Characters 1-20 of the third row
+    lcd_write(0x80 | 0x14);  // Move cursor to line 1 position 1
+    for (uint8_t i = 0; i < 20; i++)
+    {
+        lcd_write(lcd_l3[i]);
+    }
+    // Line 4 (Address 54h-67h): Characters 1-20 of the fourth row
+    lcd_write(0x80 | 0x54);  // Move cursor to line 1 position 1
+    for (uint8_t i = 0; i < 20; i++)
+    {
+        lcd_write(lcd_l4[i]);
+    }
+
 }
 
 void lcd_delay(void)

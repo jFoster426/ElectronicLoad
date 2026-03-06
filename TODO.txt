@@ -1,0 +1,10 @@
+TODO:
+
+- Solder buttons to PCB
+- 3D print stick for button and test final fit to enclosure
+- Source battery?
+- Rework board to include jumper for programming mode
+- Implement ADC reading code
+- Verify LCD frame code works
+- Draft a state machine with user interface for setting
+  voltage and current using buttons

@@ -14,6 +14,9 @@
 #define LCD_RS_MODE_INSTRUCTION  0
 #define LCD_RS_MODE_DATA         1
 
+// Allocate 21 characters in each line so that '\0' is included
+uint8_t lcd_l1[21], lcd_l2[21], lcd_l3[21], lcd_l4[21];
+
 void lcd_init(void);
 
 void lcd_set_data_bus_output(void);
@@ -31,6 +34,8 @@ void lcd_write_e(void);
 void lcd_write_instruction(uint8_t i);
 
 void lcd_write_data(uint8_t d);
+
+void lcd_write_frame(void);
 
 void lcd_delay(void);
 
