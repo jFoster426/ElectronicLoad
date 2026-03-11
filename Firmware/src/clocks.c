@@ -5,13 +5,13 @@ void clocks_init(void)
     // Update clock frequency to select 24 MHz
     // external crystal and 150 MHz operation
     SET_BIT(RCC->CR, RCC_CR_HSEON);  // Enable high speed external oscillator
-    while (READ_BIT(RCC->CR, RCC_CR_HSERDY) == 0);  // Wait for external oscillator to be ready
+    while (!READ_BIT(RCC->CR, RCC_CR_HSERDY));  // Wait for external oscillator to be ready
 
     // RM0440 p. 278 - The PLL configuration (selection of the input clock and multiplication factor)
     // must be done before enabling the PLL.
     
     CLEAR_BIT(RCC->CR, RCC_CR_PLLON);  // Disable the PLL
-    while (READ_BIT(RCC->CR, RCC_CR_PLLRDY) == 1);  // Wait for the PLL to be fully stopped
+    while (READ_BIT(RCC->CR, RCC_CR_PLLRDY));   // Wait for the PLL to be fully stopped
     
     // RM0440 p. 291
     // (VCO clock) = f(PLL clock input) × (PLLN / PLLM) = 24 × (75 / 6) = 300 MHz
@@ -32,7 +32,7 @@ void clocks_init(void)
                  | (0b11 << RCC_PLLCFGR_PLLSRC_Pos);  // HSE clock entry
     
     SET_BIT(RCC->CR, RCC_CR_PLLON);  // Enable the PLL
-    while (READ_BIT(RCC->CR, RCC_CR_PLLRDY) == 0);  // Wait for the PLL to be locked
+    while (!READ_BIT(RCC->CR, RCC_CR_PLLRDY));   // Wait for the PLL to be locked
 
     // RM0440 p. 190 - Read access latency
     // For HCLK = 150 MHz (VCORE range 1 normal mode), minimum 4 flash wait states required

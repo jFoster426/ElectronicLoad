@@ -3,4 +3,6 @@
 
 #include "stm32g4xx.h"
 
+#include "gpio.h"
+
 #endif
