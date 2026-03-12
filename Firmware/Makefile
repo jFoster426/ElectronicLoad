@@ -44,6 +44,7 @@ SOURCES += src/system_stm32g4xx.c
 SOURCES += src/startup_stm32g474xx.s
 SOURCES += src/syscalls.c
 
+SOURCES += src/adc.c
 SOURCES += src/clocks.c
 SOURCES += src/dac.c
 SOURCES += src/delay.c

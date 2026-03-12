@@ -5,4 +5,10 @@
 
 #include "gpio.h"
 
+#define ADC1_NUM_CHANNELS 10
+
+extern volatile uint16_t adc1_dma_buffer[ADC1_NUM_CHANNELS];
+
+void adc_init(void);
+
 #endif

@@ -14,8 +14,13 @@
 #define LCD_RS_MODE_INSTRUCTION  0
 #define LCD_RS_MODE_DATA         1
 
-// Allocate 21 characters in each line so that '\0' is included
-uint8_t lcd_l1[21], lcd_l2[21], lcd_l3[21], lcd_l4[21];
+#define LCD_LINE_LENGTH          20
+
+// Allocate +1 characters in each line so that '\0' is included
+extern volatile uint8_t lcd_l1[LCD_LINE_LENGTH+1],
+                        lcd_l2[LCD_LINE_LENGTH+1],
+                        lcd_l3[LCD_LINE_LENGTH+1],
+                        lcd_l4[LCD_LINE_LENGTH+1];
 
 void lcd_init(void);
 

@@ -17,6 +17,11 @@
 // DB6  PD9
 // DB7  PD8
 
+volatile uint8_t lcd_l1[LCD_LINE_LENGTH+1],
+                 lcd_l2[LCD_LINE_LENGTH+1],
+                 lcd_l3[LCD_LINE_LENGTH+1],
+                 lcd_l4[LCD_LINE_LENGTH+1];
+
 void lcd_init(void)
 {
     gpio_init();
@@ -126,28 +131,28 @@ void lcd_write_frame(void)
 {
     // Mapping to a 20x4 display is equivalent to a 40x2 display:
     // Line 1 (Address 00h-13h): Characters 1-20 of the first row
-    lcd_write(0x80 | 0x00);  // Move cursor to line 1 position 1
+    lcd_write_instruction(0x80 | 0x00);  // Move cursor to line 1 position 1
     for (uint8_t i = 0; i < 20; i++)
     {
-        lcd_write(lcd_l1[i]);
+        lcd_write_data(lcd_l1[i]);
     }
     // Line 2 (Address 40h-53h): Characters 1-20 of the second row
-    lcd_write(0x80 | 0x40);  // Move cursor to line 1 position 1
+    lcd_write_instruction(0x80 | 0x40);  // Move cursor to line 1 position 1
     for (uint8_t i = 0; i < 20; i++)
     {
-        lcd_write(lcd_l2[i]);
+        lcd_write_data(lcd_l2[i]);
     }
     // Line 3 (Address 14h-27h): Characters 1-20 of the third row
-    lcd_write(0x80 | 0x14);  // Move cursor to line 1 position 1
+    lcd_write_instruction(0x80 | 0x14);  // Move cursor to line 1 position 1
     for (uint8_t i = 0; i < 20; i++)
     {
-        lcd_write(lcd_l3[i]);
+        lcd_write_data(lcd_l3[i]);
     }
     // Line 4 (Address 54h-67h): Characters 1-20 of the fourth row
-    lcd_write(0x80 | 0x54);  // Move cursor to line 1 position 1
+    lcd_write_instruction(0x80 | 0x54);  // Move cursor to line 1 position 1
     for (uint8_t i = 0; i < 20; i++)
     {
-        lcd_write(lcd_l4[i]);
+        lcd_write_data(lcd_l4[i]);
     }
 
 }

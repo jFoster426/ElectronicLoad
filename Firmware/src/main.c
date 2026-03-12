@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "stm32g4xx.h"
 
+#include "adc.h"
 #include "clocks.h"
 #include "dac.h"
 #include "delay.h"
@@ -152,6 +154,7 @@ int main(void)
     uart_init(9600);
     dac_init();
     lcd_init();
+    adc_init();
 
     gpio_set_output(GPIOD, 4); // LATCH
     gpio_set(GPIOD, 4);        // Enable power latch
@@ -160,10 +163,10 @@ int main(void)
     gpio_set(GPIOB, 7);         // Enable +15V/-5V gate power supplies
 
     lcd_init();
-    strcpy(lcd_l1, "   Hello,  World!   ");
-    strcpy(lcd_l2, "  Electronic  Load  ");
-    strcpy(lcd_l3, "    Judd  Foster    ");
-    strcpy(lcd_l4, "Firmware: 5 MAR 2026");
+    strcpy((char *)lcd_l1, "   Hello,  World!   ");
+    strcpy((char *)lcd_l2, "  Electronic  Load  ");
+    strcpy((char *)lcd_l3, "    Judd  Foster    ");
+    strcpy((char *)lcd_l4, "Firmware: 5 MAR 2026");
     lcd_write_frame();
 
     float current_limit_amps = 0.1;
