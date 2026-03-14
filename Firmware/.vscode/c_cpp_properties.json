@@ -10,7 +10,7 @@
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "arm-none-eabi-gcc.exe",
+            "compilerPath": "arm-none-eabi-gcc",
             "intelliSenseMode": "gcc-arm",
             "cStandard": "c17",
             "cppStandard": "c++17"

@@ -16,12 +16,17 @@ void gpio_init(void)
 
 void gpio_set_output(GPIO_TypeDef * port, uint16_t pin)
 {
-    MODIFY_REG(port->MODER, (0b11 << (pin * 2)), (0b01 << (pin * 2)));
+    MODIFY_REG(port->MODER, (0b11UL << (pin * 2)), (0b01UL << (pin * 2)));
 }
 
 void gpio_set_input(GPIO_TypeDef * port, uint16_t pin)
 {
-    MODIFY_REG(port->MODER, (0b11 << (pin * 2)), (0b00 << (pin * 2)));
+    MODIFY_REG(port->MODER, (0b11UL << (pin * 2)), (0b00UL << (pin * 2)));
+}
+
+void gpio_set_analog(GPIO_TypeDef * port, uint8_t pin)
+{
+    SET_BIT(port->MODER, (0b11UL << (pin * 2)));
 }
 
 void gpio_set_alt(GPIO_TypeDef * port, uint16_t pin, uint8_t alt_mode)
@@ -31,8 +36,8 @@ void gpio_set_alt(GPIO_TypeDef * port, uint16_t pin, uint8_t alt_mode)
 
     // Set MODER to alternate function
     uint32_t shift = pin * 2;
-    uint32_t mask = 0x3 << shift;
-    uint32_t set = 0b10 << shift;
+    uint32_t mask = 0x3UL << shift;
+    uint32_t set = 0b10UL << shift;
     MODIFY_REG(port->MODER, mask, set);
 
     // Set the alternate function using either AFRL or AFRH registers
@@ -59,12 +64,12 @@ void gpio_set_alt(GPIO_TypeDef * port, uint16_t pin, uint8_t alt_mode)
 
 void gpio_set(GPIO_TypeDef * port, uint16_t pin)
 {
-    SET_BIT(port->ODR, (1 << pin));
+    port->BSRR = (1UL << pin);
 }
 
 void gpio_reset(GPIO_TypeDef * port, uint16_t pin)
 {
-    CLEAR_BIT(port->ODR, (1 << pin));
+    port->BSRR = (1UL << (pin + 16));
 }
 
 void gpio_write(GPIO_TypeDef * port, uint16_t pin, uint8_t state)

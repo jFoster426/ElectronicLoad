@@ -44,4 +44,8 @@ void lcd_write_frame(void);
 
 void lcd_delay(void);
 
+void lcd_enable_backlight(void);
+
+void lcd_disable_backlight(void);
+
 #endif

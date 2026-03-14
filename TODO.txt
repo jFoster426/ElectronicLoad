@@ -5,6 +5,14 @@ TODO:
 - Source battery?
 - Rework board to include jumper for programming mode
 - Implement ADC reading code
-- Verify LCD frame code works
 - Draft a state machine with user interface for setting
   voltage and current using buttons
+- Equalize the ADC1,2,3,4,5 so that each ADC is equally loaded
+
+
+MISTAKES:
+
+- PMOS used for LCD backlight, need to rework to NMOS
+- PA5 is  ADC2_IN13 not ADC1_IN13
+- PC4 is  ADC2_IN5  not ADC1_IN5
+- PE14 is ADC4_IN1  not ADC3_IN1

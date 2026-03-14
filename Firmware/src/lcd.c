@@ -26,25 +26,33 @@ void lcd_init(void)
 {
     gpio_init();
 
-    gpio_set_output(GPIOB, 15);
-    gpio_set(GPIOB, 15);  // LCD.OE high, enable buffers
-
     gpio_set_output(GPIOB, 11);
     gpio_set_output(GPIOB, 12);
     gpio_set_output(GPIOB, 13);
     gpio_set_output(GPIOB, 14);
     gpio_set_output(GPIOB, 15);
 
-    delay_ms(50);
+    gpio_reset(GPIOB, 11);
+    gpio_reset(GPIOB, 12);
+    gpio_reset(GPIOB, 13);
+    gpio_reset(GPIOB, 14);
+    gpio_reset(GPIOB, 15);
+
+    lcd_enable_backlight();
+
+    gpio_set_output(GPIOB, 15);
+    gpio_set(GPIOB, 15);  // LCD.OE high, enable buffers
+
+    delay_ms(100);
 
     // HD44780U datasheet p. 45 - Initializing by Instruction
     lcd_write_instruction(0b00110000);
     delay_ms(15);
     lcd_write_instruction(0b00110000);
-    delay_ms(5);
+    delay_ms(8);
     lcd_write_instruction(0b00110000);
-    delay_ms(1);
-    lcd_write_instruction(0b00111000);  // Data length 8 bits, 2 lines, 5x10 font
+    delay_ms(8);
+    lcd_write_instruction(0b00111000);  // Data length 8 bits, 2 lines, 5x8 font
     delay_ms(8);
     lcd_write_instruction(0x08); // display off
     delay_ms(8);
@@ -53,6 +61,7 @@ void lcd_init(void)
     lcd_write_instruction(0x06); // cursor moves right
     delay_ms(8);
     lcd_write_instruction(0x0C); // display on, cursor off
+    delay_ms(8);
 }
 
 void lcd_set_data_bus_output(void)
@@ -105,10 +114,11 @@ void lcd_write_rs(uint8_t rs)
 
 void lcd_write_e(void)
 {
-    lcd_delay();
+    lcd_delay();    // setup time
     gpio_set(GPIOB, 13);
-    for (volatile uint32_t i = 0; i < 100; i++) __NOP();
+    delay_ms(1); // for (volatile uint32_t i = 0; i < 100; i++) __NOP();
     gpio_reset(GPIOB, 13);
+    lcd_delay();    // hold time
 }
 
 void lcd_write_instruction(uint8_t i)
@@ -161,5 +171,15 @@ void lcd_delay(void)
 {
     // TODO: Implement some kind of LCD delay that changes
     // how quickly data is sent to the LCD
-    delay_ms(1);
+    delay_ms(2);
+}
+
+void lcd_enable_backlight(void)
+{
+    gpio_set(GPIOB, 14);
+}
+
+void lcd_disable_backlight(void)
+{
+    gpio_reset(GPIOB, 14);
 }

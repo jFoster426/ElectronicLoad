@@ -162,11 +162,10 @@ int main(void)
     gpio_set_output(GPIOB, 7);  // GPWR_EN
     gpio_set(GPIOB, 7);         // Enable +15V/-5V gate power supplies
 
-    lcd_init();
     strcpy((char *)lcd_l1, "   Hello,  World!   ");
     strcpy((char *)lcd_l2, "  Electronic  Load  ");
     strcpy((char *)lcd_l3, "    Judd  Foster    ");
-    strcpy((char *)lcd_l4, "Firmware: 5 MAR 2026");
+    strcpy((char *)lcd_l4, "Firmware: 14 MR 2026");
     lcd_write_frame();
 
     float current_limit_amps = 0.1;
@@ -181,10 +180,18 @@ int main(void)
         // printf("Hello, World!\n");
 
         gpio_set(GPIOE, 1);
-        delay_ms(1000);
+        delay_ms(1000);        
         gpio_reset(GPIOE, 1);
         delay_ms(1000);
 
+        while (!(ADC1->ISR & ADC_ISR_EOC));
+        uint16_t raw = ADC1->DR;
+
+        sprintf((char *)lcd_l1, "ADC Val: 0x%04X", raw); // ADC.CH1
+
+        lcd_write_frame();
+
+        SET_BIT(ADC1->CR, ADC_CR_ADSTART);
         
         // for (uint16_t i = 0; i < 1024; i++)
         // {

@@ -24,6 +24,8 @@ void gpio_set_output(GPIO_TypeDef * port, uint16_t pin);
 
 void gpio_set_input(GPIO_TypeDef * port, uint16_t pin);
 
+void gpio_set_analog(GPIO_TypeDef * port, uint8_t pin);
+
 void gpio_set_alt(GPIO_TypeDef * port, uint16_t pin, uint8_t alt_mode);
 
 void gpio_set(GPIO_TypeDef * port, uint16_t pin);
