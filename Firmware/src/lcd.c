@@ -114,11 +114,10 @@ void lcd_write_rs(uint8_t rs)
 
 void lcd_write_e(void)
 {
-    lcd_delay();    // setup time
+    for (volatile uint32_t i = 0; i < 500; i++) __NOP(); // setup time
     gpio_set(GPIOB, 13);
-    delay_ms(1); // for (volatile uint32_t i = 0; i < 100; i++) __NOP();
+    for (volatile uint32_t i = 0; i < 500; i++) __NOP(); // max(clock pulse width requirement, hold time)
     gpio_reset(GPIOB, 13);
-    lcd_delay();    // hold time
 }
 
 void lcd_write_instruction(uint8_t i)
@@ -171,7 +170,7 @@ void lcd_delay(void)
 {
     // TODO: Implement some kind of LCD delay that changes
     // how quickly data is sent to the LCD
-    delay_ms(2);
+    for (volatile uint32_t i = 0; i < 100; i++) __NOP();
 }
 
 void lcd_enable_backlight(void)

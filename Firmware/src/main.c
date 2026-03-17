@@ -168,30 +168,39 @@ int main(void)
     strcpy((char *)lcd_l4, "Firmware: 14 MR 2026");
     lcd_write_frame();
 
-    float current_limit_amps = 0.1;
+    delay_ms(500);
+
+    float current_limit_amps = 0.0;
     const float DAC_VOLTS_PER_AMP = 0.1362;
     const float DAC_FULL_SCALE = 65535.0;
     const float DAC_VREF = 3.0;
     float dac_val = (current_limit_amps * DAC_VOLTS_PER_AMP) * (DAC_FULL_SCALE / DAC_VREF);
     dac_write((uint16_t)(dac_val));
 
+    strcpy(lcd_l3, "                    ");
+    strcpy(lcd_l4, "                    ");
+
     while (1)
     {
         // printf("Hello, World!\n");
 
         gpio_set(GPIOE, 1);
-        delay_ms(1000);        
+        delay_ms(10);        
         gpio_reset(GPIOE, 1);
-        delay_ms(1000);
+        delay_ms(100);
 
-        while (!(ADC1->ISR & ADC_ISR_EOC));
-        uint16_t raw = ADC1->DR;
+        // Wait for end of sequence
+        //while (!(ADC1->ISR & ADC_ISR_EOS));
+        //SET_BIT(ADC1->ISR, ADC_ISR_EOS);  // Clear EOS flag (write 1 to clear)
+        //uint16_t raw = ADC1->DR;
 
-        sprintf((char *)lcd_l1, "ADC Val: 0x%04X", raw); // ADC.CH1
+        sprintf((char *)lcd_l1, "%04X %04X %04X %04X ", adc1_dma_buffer[0],
+            adc1_dma_buffer[1], adc1_dma_buffer[2], adc1_dma_buffer[3]);
+
+        sprintf((char *)lcd_l2, "%04X %04X %04X %04X ", adc1_dma_buffer[4],
+            adc1_dma_buffer[5], adc1_dma_buffer[6], adc1_dma_buffer[7]);
 
         lcd_write_frame();
-
-        SET_BIT(ADC1->CR, ADC_CR_ADSTART);
         
         // for (uint16_t i = 0; i < 1024; i++)
         // {

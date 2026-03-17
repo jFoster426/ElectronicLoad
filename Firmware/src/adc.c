@@ -36,7 +36,10 @@ void adc_init(void)
     // RM0440 p. 285 - When the peripheral clock is not active, the peripheral registers read or write access is not supported
     SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_ADC12EN);
     SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_ADC345EN);
-    //SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMAMUX1EN);
+
+
     // Initialize GPIO clocks
     gpio_init();
     // RM0440 p. 285 - Just after enabling the clock for a peripheral, software must wait for a delay before accessing the peripheral registers
@@ -154,23 +157,88 @@ void adc_init(void)
     // Configure sampling time for channels (640.5 ADC clock cycles for all channels,
     // SMPPLUS is set to 0)
     MODIFY_REG(ADC1->SMPR1, 0xFFFFFFFF, 0x3FFFFFFF);
+    MODIFY_REG(ADC1->SMPR2, 0xFFFFFFFF, 0x3FFFFFFF);
     MODIFY_REG(ADC2->SMPR1, 0xFFFFFFFF, 0x3FFFFFFF);
+    MODIFY_REG(ADC2->SMPR2, 0xFFFFFFFF, 0x3FFFFFFF);
     MODIFY_REG(ADC3->SMPR1, 0xFFFFFFFF, 0x3FFFFFFF);
+    MODIFY_REG(ADC3->SMPR2, 0xFFFFFFFF, 0x3FFFFFFF);
     MODIFY_REG(ADC4->SMPR1, 0xFFFFFFFF, 0x3FFFFFFF);
+    MODIFY_REG(ADC4->SMPR2, 0xFFFFFFFF, 0x3FFFFFFF);
     MODIFY_REG(ADC5->SMPR1, 0xFFFFFFFF, 0x3FFFFFFF);
+    MODIFY_REG(ADC5->SMPR2, 0xFFFFFFFF, 0x3FFFFFFF);
 
 
     // Regular channel sequence length = 8 for ADC1
-    MODIFY_REG(ADC1->SQR1, ADC_SQR1_L_Msk, ((8-1) << ADC_SQR1_L_Pos));
+    MODIFY_REG(ADC1->SQR1, ADC_SQR1_L_Msk, ((ADC1_NUM_CHANNELS-1) << ADC_SQR1_L_Pos));
     // Configure channel sequence order Configure channel sequence order
     MODIFY_REG(ADC1->SQR1, ADC_SQR1_SQ1_Msk,  (1  << ADC_SQR1_SQ1_Pos));
-    MODIFY_REG(ADC1->SQR1, ADC_SQR1_SQ3_Msk,  (8  << ADC_SQR1_SQ2_Pos));
-    MODIFY_REG(ADC1->SQR1, ADC_SQR1_SQ4_Msk,  (4  << ADC_SQR1_SQ3_Pos));
-    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ5_Msk,  (6  << ADC_SQR1_SQ4_Pos));
-    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ6_Msk,  (2  << ADC_SQR2_SQ5_Pos));
-    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ7_Msk,  (7  << ADC_SQR2_SQ6_Pos));
-    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ8_Msk,  (9  << ADC_SQR2_SQ7_Pos));
-    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ9_Msk,  (3  << ADC_SQR2_SQ8_Pos));
+    MODIFY_REG(ADC1->SQR1, ADC_SQR1_SQ2_Msk,  (8  << ADC_SQR1_SQ2_Pos));
+    MODIFY_REG(ADC1->SQR1, ADC_SQR1_SQ3_Msk,  (4  << ADC_SQR1_SQ3_Pos));
+    MODIFY_REG(ADC1->SQR1, ADC_SQR1_SQ4_Msk,  (6  << ADC_SQR1_SQ4_Pos));
+    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ5_Msk,  (2  << ADC_SQR2_SQ5_Pos));
+    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ6_Msk,  (7  << ADC_SQR2_SQ6_Pos));
+    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ7_Msk,  (9  << ADC_SQR2_SQ7_Pos));
+    MODIFY_REG(ADC1->SQR2, ADC_SQR2_SQ8_Msk,  (3  << ADC_SQR2_SQ8_Pos));
+
+    
+
+
+
+    // ***** Claude ******
+
+    // --- DMA + DMAMUX Configuration for ADC1 ---
+
+    // 1. Enable DMA1 clock (see above)
+
+    // 2. Configure DMAMUX1 Channel 0 to route ADC1 -> DMA1 Channel 1
+    //    ADC1 DMAMUX request ID = 5 on STM32G4 (RM0440 Table 91)
+    MODIFY_REG(DMAMUX1_Channel0->CCR, DMAMUX_CxCR_DMAREQ_ID_Msk, (5 << DMAMUX_CxCR_DMAREQ_ID_Pos));
+
+    // 3. Configure DMA1 Channel 1
+    //    - Disable channel before configuring
+    CLEAR_BIT(DMA1_Channel1->CCR, DMA_CCR_EN);
+
+    //    - Peripheral address = ADC1 data register
+    DMA1_Channel1->CPAR = (uint32_t)(&ADC1->DR);
+
+    //    - Memory address = our result buffer
+    DMA1_Channel1->CMAR = (uint32_t)(adc1_dma_buffer);
+
+    //    - Number of data items to transfer
+    DMA1_Channel1->CNDTR = ADC1_NUM_CHANNELS;
+
+    //    - Configure the channel:
+    //      * Circular mode (auto-reload CNDTR after each full sequence)
+    //      * Memory increment (advance buffer pointer after each transfer)
+    //      * Peripheral size = 16-bit (ADC DR is 16-bit)
+    //      * Memory size = 16-bit
+    //      * Direction = peripheral to memory
+    //      * Priority = high
+    MODIFY_REG(DMA1_Channel1->CCR, 
+        DMA_CCR_CIRC  |     // Circular mode
+        DMA_CCR_MINC  |     // Memory increment
+        DMA_CCR_PSIZE |     // Peripheral data size (clear first)
+        DMA_CCR_MSIZE |     // Memory data size (clear first)
+        DMA_CCR_DIR   |     // Direction (0 = periph-to-mem)
+        DMA_CCR_PL,         // Priority (clear first)
+        DMA_CCR_CIRC  |
+        DMA_CCR_MINC  |
+        DMA_CCR_PSIZE_0 |   // 01 = 16-bit peripheral
+        DMA_CCR_MSIZE_0 |   // 01 = 16-bit memory
+        DMA_CCR_PL_1        // 10 = High priority
+    );
+
+    //    - Enable DMA1 Channel 1
+    SET_BIT(DMA1_Channel1->CCR, DMA_CCR_EN);
+
+    // 4. Enable DMA mode in ADC + circular DMA (so DMA requests continue after sequence end)
+    SET_BIT(ADC1->CFGR, ADC_CFGR_DMAEN);
+    SET_BIT(ADC1->CFGR, ADC_CFGR_DMACFG);  // Circular DMA mode
+
+
+
+
+    // ***************
 
     // RM0440 p. 607 - Software procedure to enable the ADC
     // 1. Clear the ADRDY bit in the ADC_ISR register by writing 1
@@ -182,55 +250,4 @@ void adc_init(void)
 
     // Start conversions
     SET_BIT(ADC1->CR, ADC_CR_ADSTART);
-
-
-
-// // --- DMA + DMAMUX Configuration for ADC1 ---
-
-// // 1. Enable DMA1 clock (see above)
-
-// // 2. Configure DMAMUX1 Channel 0 to route ADC1 -> DMA1 Channel 1
-// //    ADC1 DMAMUX request ID = 5 on STM32G4 (RM0440 Table 91)
-// MODIFY_REG(DMAMUX1_Channel0->CCR, DMAMUX_CxCR_DMAREQ_ID_Msk, (5 << DMAMUX_CxCR_DMAREQ_ID_Pos));
-
-// // 3. Configure DMA1 Channel 1
-// //    - Disable channel before configuring
-// CLEAR_BIT(DMA1_Channel1->CCR, DMA_CCR_EN);
-
-// //    - Peripheral address = ADC1 data register
-// DMA1_Channel1->CPAR = (uint32_t)(&ADC1->DR);
-
-// //    - Memory address = our result buffer
-// DMA1_Channel1->CMAR = (uint32_t)(adc1_dma_buffer);
-
-// //    - Number of data items to transfer
-// DMA1_Channel1->CNDTR = ADC1_NUM_CHANNELS;
-
-// //    - Configure the channel:
-// //      * Circular mode (auto-reload CNDTR after each full sequence)
-// //      * Memory increment (advance buffer pointer after each transfer)
-// //      * Peripheral size = 16-bit (ADC DR is 16-bit)
-// //      * Memory size = 16-bit
-// //      * Direction = peripheral to memory
-// //      * Priority = high
-// MODIFY_REG(DMA1_Channel1->CCR, 
-//     DMA_CCR_CIRC  |     // Circular mode
-//     DMA_CCR_MINC  |     // Memory increment
-//     DMA_CCR_PSIZE |     // Peripheral data size (clear first)
-//     DMA_CCR_MSIZE |     // Memory data size (clear first)
-//     DMA_CCR_DIR   |     // Direction (0 = periph-to-mem)
-//     DMA_CCR_PL,         // Priority (clear first)
-//     DMA_CCR_CIRC  |
-//     DMA_CCR_MINC  |
-//     DMA_CCR_PSIZE_0 |   // 01 = 16-bit peripheral
-//     DMA_CCR_MSIZE_0 |   // 01 = 16-bit memory
-//     DMA_CCR_PL_1        // 10 = High priority
-// );
-
-// //    - Enable DMA1 Channel 1
-// SET_BIT(DMA1_Channel1->CCR, DMA_CCR_EN);
-
-// // 4. Enable DMA mode in ADC + circular DMA (so DMA requests continue after sequence end)
-// SET_BIT(ADC1->CFGR, ADC_CFGR_DMAEN);
-// SET_BIT(ADC1->CFGR, ADC_CFGR_DMACFG);  // Circular DMA mode
 }

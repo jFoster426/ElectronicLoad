@@ -16,3 +16,5 @@ MISTAKES:
 - PA5 is  ADC2_IN13 not ADC1_IN13
 - PC4 is  ADC2_IN5  not ADC1_IN5
 - PE14 is ADC4_IN1  not ADC3_IN1
+- Should connect R20 to -5V0A and put a negative voltage protection diode on pin 1 of U5 to COM
+- Why did I de-populate all of the instances of R111?
