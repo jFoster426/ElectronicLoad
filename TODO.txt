@@ -18,3 +18,49 @@ MISTAKES:
 - PE14 is ADC4_IN1  not ADC3_IN1
 - Should connect R20 to -5V0A and put a negative voltage protection diode on pin 1 of U5 to COM
 - Why did I de-populate all of the instances of R111?
+
+
+
+
+USER INTERFACE:
+
+Startup screen:
+~~~~~~~~~~~~~~~~~~~~
+ DC ELECTRONIC LOAD
+  FW:1.0 | JFOSTER
+~~~~~~~~~~~~~~~~~~~~
+
+Main screens:
+---------------------------------------
+V: XXX.XX V |   X.XX
+I:   X.XX A |      A
+P: XXX.XX W | B 100%
+M: CC    0-500V,0-1A
+---------------------------------------
+V: XXX.XX V | XXX.XX 
+I:   X.XX A |      V
+P: XXX.XX W | B 100%
+M: CV    0-500V,0-1A
+---------------------------------------
+V: XXX.XX V | XXX.XX 
+I:   X.XX A |      W
+P: XXX.XX W | B 100%
+M: CP    0-50V,0-10A
+---------------------------------------
+V: XXX.XX V | XXX.XX 
+I:   X.XX A |      Ω
+P: XXX.XX W | B 100%
+M: CR    0-50V,0-10A
+
+Buttons:
+Move Left One Digit                     Toggle Mode (CC/CV/CR/CP)
+Move Right One Digit                    Toggle HV/LV mode
+Increase Digit                          Reserved for future use
+Decrease Digit                          Load On/Off
+
+
+Buttons are connected on pins PC6 through PC12 and PD0, which will be configured to use EXTI0,6..12.
+
+The ISR will include a debouncing algorithm that does not allow the ISR to be called more than once per every 100 ms (use SysTick counter?)
+
+Buttons being held down will be supported through an external timer which calls the state machine to check button states at regular intervals.
