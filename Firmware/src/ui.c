@@ -1,6 +1,6 @@
-#include "buttons.h"
+#include "ui.h"
 
-void buttons_init(void)
+void ui_init(void)
 {
     // RM0440 p. 285 - When the peripheral clock is not active, the peripheral registers read or write access is not supported
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
@@ -59,65 +59,115 @@ void buttons_init(void)
     NVIC_EnableIRQ(EXTI0_IRQn);
     NVIC_EnableIRQ(EXTI9_5_IRQn);
     NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+    // Only start lptim (which keeps track of buttons holds), after the buttons' interrupts have been set up
+    lptim_init();
 }
 
-void buttons_poll(void)
+void ui_poll(void)
 {
-    if (buttons_trg_tmr > 0)
+    if (ui_tmr > 0)
     {
-        buttons_trg_tmr--;
+        // Time has elapsed since last ui_poll()
+        ui_tmr--;
+
+        for (uint8_t b = 0; b < 8; b++)
+        {
+            // Button currently pressed and was pressed last time
+            if (btn_state[b] == 1 && btn_state_old[b] == 1)
+            {
+                if (btn_hold_cnt < BTN_HOLD_THRESH)
+                {
+                    btn_hold_cnt[b]++;
+                }
+            }
+
+            // Button is not pressed
+            if (btn_state[b] == 0)
+            {
+                btn_hold_cnt[b] = 0;
+            }
+
+            //  Button has been held down for enough time
+            if (btn_hold_cnt[b] == BTN_HOLD_THRESH)
+            {
+                // Perform button hold action
+                // TODO
+            }
+
+            btn_state_old[b] = btn_state[b];
+        }
     }
 
-    if (buttons_trg_btn[0] > 0) {
-        buttons_trg_btn[1]--;
-    }
+    for (uint8_t b = 0; b < 8; b++)
+    {
+        if (ui_btn[b] > 0)
+        {
+            // Button was pressed at least once since last ui_poll()
+            ui_btn[b]--;
 
-    if (buttons_trg_btn[2] > 0) {
-        buttons_trg_btn[2]--;
-    }
-
-    if (buttons_trg_btn[3] > 0) {
-        buttons_trg_btn[3]--;
-    }
-
-    if (buttons_trg_btn[4] > 0) {
-        buttons_trg_btn[4]--;
-    }
-
-    if (buttons_trg_btn[5] > 0) {
-        buttons_trg_btn[5]--;
-    }
-
-    if (buttons_trg_btn[6] > 0) {
-        buttons_trg_btn[6]--;
-    }
-
-    if (buttons_trg_btn[7] > 0) {
-        buttons_trg_btn[7]--;
-    }
-
-    if (buttons_trg_btn[8] > 0) {
-        buttons_trg_btn[8]--;
+            // Perform button pressed action
+            // TODO
+        }
     }
 }
 
 void EXTI0_IRQHandler(void)
 {
-    // TODO
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF0))
+    {
+        SET_BIT(EXTI->PR1, EXTI_PR1_PIF0);
+        btn_state[0] = 1;
+        ui_btn[0]++;
+    }
 }
 
 void EXTI9_5_IRQHandler(void)
 {
-    // TODO
-    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF6)) {
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF6))
+    {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF6);
+        btn_state[1] = 1;
+        ui_btn[1]++;
     }
-    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF7)) {
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF7))
+    {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF7);
+        btn_state[2] = 1;
+        ui_btn[2]++;
+    }
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF8))
+    {
+        SET_BIT(EXTI->PR1, EXTI_PR1_PIF8);
+        btn_state[3] = 1;
+        ui_btn[3]++;
+    }
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF9))
+    {
+        SET_BIT(EXTI->PR1, EXTI_PR1_PIF9);
+        btn_state[4] = 1;
+        ui_btn[4]++;
     }
 }
 
 void EXTI15_10_IRQHandler(void)
 {
-    // TODO
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF10))
+    {
+        SET_BIT(EXTI->PR1, EXTI_PR1_PIF10);
+        btn_state[5] = 1;
+        ui_btn[5]++;
+    }
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF11))
+    {
+        SET_BIT(EXTI->PR1, EXTI_PR1_PIF11);
+        btn_state[6] = 1;
+        ui_btn[6]++;
+    }
+    if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF12))
+    {
+        SET_BIT(EXTI->PR1, EXTI_PR1_PIF12);
+        btn_state[7] = 1;
+        ui_btn[7]++;
+    }
 }

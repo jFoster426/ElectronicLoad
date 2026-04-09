@@ -1,0 +1,20 @@
+User Interface Overview:
+
+1.  Call ui_init() to initialize the button pins as inputs, and configure the external interrupts for each line.
+    The function ui_init() also initializes the lptim peripheral, which fires at 20 Hz.
+2.  Call ui_poll() repeatedly in the main() function. ui_poll performs the following functions:
+
+    1.  Check state of ui_tmr variable ( > 0 means that at least one new event has occurred since the last ui_poll() call)
+        The ui_tmr variable will +1 every 1/20 s, handled in the LPTIM function.
+
+        If a new event has occurred, decrement ui_tmr marking that the function processed that event.
+
+        If the button was pressed and is currently pressed, then the button is being held down. Wait until the button has been
+        held down for at least 15 iterations (0.75 s) before calling button hold action.
+
+    2.  Check state of each ui_btn variable ( > 0 means that at least one new button press has occurred since the last ui_poll() call)
+        Each ui_btn will +1 upon the rising edge of the corresponding button press, handled in the EXTI interrupts.
+
+        If a new event has occurred, decrement ui_btn[b] marking that the function processed that event.
+
+        Call the button pressed action immediately.
