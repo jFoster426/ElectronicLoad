@@ -1,19 +1,21 @@
-#ifndef __UI_H
-#define __UI_H
+#ifndef _UI_H_
+#define _UI_H_
 
 #include "stm32g4xx.h"
 
 #include "gpio.h"
 #include "lptim.h"
+#include "systick.h"
 
-const uint8_t BTN_HOLD_THRESH = 15;
+extern volatile const uint8_t  BTN_HOLD_THRESH;
+extern volatile const uint32_t BTN_DB_TIME_MS;
 
-volatile uint8_t ui_tmr;
-volatile uint8_t ui_btn[8];
+extern volatile uint8_t ui_tmr;
+extern volatile uint8_t ui_btn[8];
 
-volatile uint8_t btn_state[8];
-volatile uint8_t btn_state_old[8];
-volatile uint8_t btn_hold_cnt[8];
+extern volatile uint8_t btn_state[8];
+extern volatile uint8_t btn_state_old[8];
+extern volatile uint8_t btn_hold_cnt[8];
 
 
 void ui_init(void);

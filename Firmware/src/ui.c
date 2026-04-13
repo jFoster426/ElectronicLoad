@@ -1,4 +1,19 @@
 #include "ui.h"
+#include "delay.h"
+
+volatile const uint8_t  BTN_HOLD_THRESH = 15;
+volatile const uint32_t BTN_DB_TIME_MS  = 50;
+
+GPIO_TypeDef * BTN_PORTS[8] = { GPIOC, GPIOC, GPIOC, GPIOC, GPIOD, GPIOC, GPIOC, GPIOC };
+volatile const uint8_t BTN_PINS[8]  = { 8, 7, 6, 9, 0, 12, 11, 10 };
+
+volatile uint8_t ui_tmr;
+volatile uint8_t ui_btn[8] = { 0 };
+
+volatile uint8_t btn_state[8] = { 0 };
+volatile uint8_t btn_state_old[8] = { 0 };
+volatile uint8_t btn_hold_cnt[8] = { 0 };
+volatile uint8_t last_btn_irq_tick[8] = { 0 };
 
 void ui_init(void)
 {
@@ -76,7 +91,7 @@ void ui_poll(void)
             // Button currently pressed and was pressed last time
             if (btn_state[b] == 1 && btn_state_old[b] == 1)
             {
-                if (btn_hold_cnt < BTN_HOLD_THRESH)
+                if (btn_hold_cnt[b] < BTN_HOLD_THRESH)
                 {
                     btn_hold_cnt[b]++;
                 }
@@ -86,6 +101,7 @@ void ui_poll(void)
             if (btn_state[b] == 0)
             {
                 btn_hold_cnt[b] = 0;
+                gpio_reset(GPIOE, 1);
             }
 
             //  Button has been held down for enough time
@@ -93,6 +109,7 @@ void ui_poll(void)
             {
                 // Perform button hold action
                 // TODO
+                gpio_set(GPIOE, 1);
             }
 
             btn_state_old[b] = btn_state[b];
@@ -108,7 +125,24 @@ void ui_poll(void)
 
             // Perform button pressed action
             // TODO
+            delay_ms(10);
+            gpio_reset(GPIOE, 1);
         }
+    }
+}
+
+__attribute__((always_inline)) static inline void btn_handler(uint8_t b)
+{
+    if ((SysTickCounter - last_btn_irq_tick[b]) > BTN_DB_TIME_MS)
+    {
+        last_btn_irq_tick[b] = SysTickCounter;
+        uint8_t pressed = 1 - gpio_read(BTN_PORTS[b], BTN_PINS[b]);
+        if (pressed && btn_state[b] == 0)
+        {
+            ui_btn[b]++;
+            gpio_set(GPIOE, 1);
+        }
+        btn_state[b] = pressed;
     }
 }
 
@@ -117,8 +151,7 @@ void EXTI0_IRQHandler(void)
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF0))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF0);
-        btn_state[0] = 1;
-        ui_btn[0]++;
+        btn_handler(4);
     }
 }
 
@@ -127,26 +160,22 @@ void EXTI9_5_IRQHandler(void)
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF6))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF6);
-        btn_state[1] = 1;
-        ui_btn[1]++;
+        btn_handler(2);
     }
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF7))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF7);
-        btn_state[2] = 1;
-        ui_btn[2]++;
+        btn_handler(1);
     }
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF8))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF8);
-        btn_state[3] = 1;
-        ui_btn[3]++;
+        btn_handler(0);
     }
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF9))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF9);
-        btn_state[4] = 1;
-        ui_btn[4]++;
+        btn_handler(3);
     }
 }
 
@@ -155,19 +184,16 @@ void EXTI15_10_IRQHandler(void)
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF10))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF10);
-        btn_state[5] = 1;
-        ui_btn[5]++;
+        btn_handler(7);
     }
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF11))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF11);
-        btn_state[6] = 1;
-        ui_btn[6]++;
+        btn_handler(6);
     }
     if (READ_BIT(EXTI->PR1, EXTI_PR1_PIF12))
     {
         SET_BIT(EXTI->PR1, EXTI_PR1_PIF12);
-        btn_state[7] = 1;
-        ui_btn[7]++;
+        btn_handler(5);
     }
 }

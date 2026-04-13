@@ -37,6 +37,6 @@ void LPTIM1_IRQHandler(void)
         SET_BIT(LPTIM1->ICR, LPTIM_ICR_ARRMCF);
         
         // Notify the button hold detector that it was called via the timer
-        buttons_trg_tmr++;
+        ui_tmr++;
     }
 }

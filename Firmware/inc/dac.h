@@ -1,5 +1,5 @@
-#ifndef __DAC_H
-#define __DAC_H
+#ifndef _DAC_H_
+#define _DAC_H_
 
 #include "stm32g4xx.h"
 

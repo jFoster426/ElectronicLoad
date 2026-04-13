@@ -1,5 +1,5 @@
-#ifndef __ADC_H
-#define __ADC_H
+#ifndef _ADC_H_
+#define _ADC_H_
 
 #include "stm32g4xx.h"
 

@@ -12,6 +12,7 @@
 #include "lcd.h"
 #include "systick.h"
 #include "uart.h"
+#include "ui.h"
 
 const uint16_t SINE_LUT[1024] =
 {
@@ -155,6 +156,7 @@ int main(void)
     dac_init();
     lcd_init();
     adc_init();
+    ui_init();
 
     gpio_set_output(GPIOD, 4); // LATCH
     gpio_set(GPIOD, 4);        // Enable power latch
@@ -170,11 +172,12 @@ int main(void)
 
     delay_ms(500);
 
-    float current_limit_amps = 0.0;
+    float current_limit_amps = 1.0;
+    float current_limit_amps_per_fet = current_limit_amps / 8.0; // 8 paralleled FETs
     const float DAC_VOLTS_PER_AMP = 0.1362;
     const float DAC_FULL_SCALE = 65535.0;
     const float DAC_VREF = 3.0;
-    float dac_val = (current_limit_amps * DAC_VOLTS_PER_AMP) * (DAC_FULL_SCALE / DAC_VREF);
+    float dac_val = (current_limit_amps_per_fet * DAC_VOLTS_PER_AMP) * (DAC_FULL_SCALE / DAC_VREF);
     dac_write((uint16_t)(dac_val));
 
     strcpy(lcd_l3, "                    ");
@@ -182,25 +185,21 @@ int main(void)
 
     while (1)
     {
+        ui_poll();
         // printf("Hello, World!\n");
 
-        gpio_set(GPIOE, 1);
-        delay_ms(10);        
-        gpio_reset(GPIOE, 1);
-        delay_ms(100);
+        // gpio_set(GPIOE, 1);
+        // delay_ms(10);        
+        // gpio_reset(GPIOE, 1);
+        // delay_ms(100);
 
-        // Wait for end of sequence
-        //while (!(ADC1->ISR & ADC_ISR_EOS));
-        //SET_BIT(ADC1->ISR, ADC_ISR_EOS);  // Clear EOS flag (write 1 to clear)
-        //uint16_t raw = ADC1->DR;
+        // sprintf((char *)lcd_l1, "%04X %04X %04X %04X ", adc1_dma_buffer[0],
+        //     adc1_dma_buffer[1], adc1_dma_buffer[2], adc1_dma_buffer[3]);
 
-        sprintf((char *)lcd_l1, "%04X %04X %04X %04X ", adc1_dma_buffer[0],
-            adc1_dma_buffer[1], adc1_dma_buffer[2], adc1_dma_buffer[3]);
+        // sprintf((char *)lcd_l2, "%04X %04X %04X %04X ", adc1_dma_buffer[4],
+        //     adc1_dma_buffer[5], adc1_dma_buffer[6], adc1_dma_buffer[7]);
 
-        sprintf((char *)lcd_l2, "%04X %04X %04X %04X ", adc1_dma_buffer[4],
-            adc1_dma_buffer[5], adc1_dma_buffer[6], adc1_dma_buffer[7]);
-
-        lcd_write_frame();
+        // lcd_write_frame();
         
         // for (uint16_t i = 0; i < 1024; i++)
         // {

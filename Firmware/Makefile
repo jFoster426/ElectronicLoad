@@ -50,8 +50,10 @@ SOURCES += src/dac.c
 SOURCES += src/delay.c
 SOURCES += src/gpio.c
 SOURCES += src/lcd.c
+SOURCES += src/lptim.c
 SOURCES += src/systick.c
 SOURCES += src/uart.c
+SOURCES += src/ui.c
 SOURCES += src/main.c
 
 OBJECTS := $(patsubst src/%,build/%,$(SOURCES))

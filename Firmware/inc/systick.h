@@ -1,5 +1,5 @@
-#ifndef __SYSTICK_H
-#define __SYSTICK_H
+#ifndef _SYSTICK_H_
+#define _SYSTICK_H_
 
 #include "stm32g4xx.h"
 

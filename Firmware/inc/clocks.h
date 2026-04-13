@@ -1,5 +1,5 @@
-#ifndef __CLOCKS_H
-#define __CLOCKS_H
+#ifndef _CLOCKS_H_
+#define _CLOCKS_H_
 
 #include "stm32g4xx.h"
 

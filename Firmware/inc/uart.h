@@ -1,5 +1,5 @@
-#ifndef __UART_H
-#define __UART_H
+#ifndef _UART_H_
+#define _UART_H_
 
 #include "stm32g4xx.h"
 
