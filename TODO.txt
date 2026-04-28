@@ -2,9 +2,7 @@ TODO:
 
 - Solder buttons to PCB
 - 3D print stick for button and test final fit to enclosure
-- Source battery?
 - Rework board to include jumper for programming mode
-- Implement ADC reading code
 - Draft a state machine with user interface for setting
   voltage and current using buttons
 - Equalize the ADC1,2,3,4,5 so that each ADC is equally loaded
@@ -32,8 +30,8 @@ Startup screen:
 
 Main screens:
 ---------------------------------------
-V: XXX.XX V |   X.XX
-I:   X.XX A |      A
+V: XXX.XX V |  X.XXX
+I:  X.XXX A |      A
 P: XXX.XX W | B 100%
 M: CC    0-500V,0-1A
 ---------------------------------------

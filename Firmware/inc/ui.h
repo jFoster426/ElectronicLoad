@@ -4,8 +4,16 @@
 #include "stm32g4xx.h"
 
 #include "gpio.h"
+#include "lcd.h"
 #include "lptim.h"
 #include "systick.h"
+
+typedef enum {
+    CONSTANT_POWER,
+    CONSTANT_CURRENT,
+    CONSTANT_VOLTAGE,
+    CONSTANT_RESISTANCE
+} Modes;
 
 extern volatile const uint8_t  BTN_HOLD_THRESH;
 extern volatile const uint32_t BTN_DB_TIME_MS;
@@ -17,10 +25,18 @@ extern volatile uint8_t btn_state[8];
 extern volatile uint8_t btn_state_old[8];
 extern volatile uint8_t btn_hold_cnt[8];
 
+extern volatile uint8_t batteryPercentage;
+
+extern volatile float voltageMeas;
+extern volatile float currentMeas;
+
+extern Modes currentMode;
 
 void ui_init(void);
 
 void ui_poll(void);
+
+void ui_event(uint8_t b);
 
 void EXTI0_IRQHandler(void);
 

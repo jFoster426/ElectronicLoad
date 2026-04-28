@@ -1,4 +1,4 @@
-User Interface Overview:
+----- User Interface Overview -----
 
 1.  Call ui_init() to initialize the button pins as inputs, and configure the external interrupts for each line.
     The function ui_init() also initializes the lptim peripheral, which fires at 20 Hz.

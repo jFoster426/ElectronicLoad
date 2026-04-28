@@ -1,8 +1,32 @@
 #include "ui.h"
-#include "delay.h"
 
 volatile const uint8_t  BTN_HOLD_THRESH = 15;
 volatile const uint32_t BTN_DB_TIME_MS  = 50;
+
+/*
+Main screens
+*******************************************************
+*   V: XXX.XX V | XXX.XX   *   V: XXX.XX V |  X.XXX   *
+*   I:  X.XXX A |      W   *   I:  X.XXX A |      A   *
+*   P: XXX.XX W | B 100%   *   P: XXX.XX W | B 100%   *
+*   M: CP    0-500V,0-1A   *   M: CC    0-500V,0-1A   *
+*******************************************************
+*   V: XXX.XX V | XXX.XX   *   V: XXX.XX V |  XXXXX   *
+*   I:  X.XXX A |      V   *   I:  X.XXX A |      Ω   *
+*   P: XXX.XX W | B 100%   *   P: XXX.XX Ω | B 100%   *
+*   M: CV    0-500V,0-1A   *   M: CR    0-500V,0-1A   *
+*******************************************************
+*/
+
+volatile const float CP_CURSOR_LIM_UPR = 100.0;     // XXX.XX  W
+volatile const float CC_CURSOR_LIM_UPR = 1.0;       // X.XXX   A
+volatile const float CV_CURSOR_LIM_UPR = 100.0;     // XXX.XX  V
+volatile const float CR_CURSOR_LIM_UPR = 10000.0;   // XXXXX   Ω
+
+volatile const float CP_CURSOR_LIM_LWR = 0.01;      // XXX.XX  W
+volatile const float CC_CURSOR_LIM_LWR = 0.001;     // X.XXX   A
+volatile const float CV_CURSOR_LIM_LWR = 0.01;      // XXX.XX  V
+volatile const float CR_CURSOR_LIM_LWR = 1.0;       // XXXXX   Ω
 
 GPIO_TypeDef * BTN_PORTS[8] = { GPIOC, GPIOC, GPIOC, GPIOC, GPIOD, GPIOC, GPIOC, GPIOC };
 volatile const uint8_t BTN_PINS[8]  = { 8, 7, 6, 9, 0, 12, 11, 10 };
@@ -14,6 +38,16 @@ volatile uint8_t btn_state[8] = { 0 };
 volatile uint8_t btn_state_old[8] = { 0 };
 volatile uint8_t btn_hold_cnt[8] = { 0 };
 volatile uint8_t last_btn_irq_tick[8] = { 0 };
+
+// Store the current state of the UI
+volatile float cursorPosition = 0.1;
+volatile float voltageSet = 0.0;
+volatile float currentSet = 0.0;
+volatile float resistanceSet = 0.0;
+volatile float powerSet = 0.0;
+volatile uint8_t cursorOn = 0;
+volatile uint8_t loadOn = 0;
+Modes currentMode = CONSTANT_CURRENT;
 
 void ui_init(void)
 {
@@ -108,8 +142,7 @@ void ui_poll(void)
             if (btn_hold_cnt[b] == BTN_HOLD_THRESH)
             {
                 // Perform button hold action
-                // TODO
-                gpio_set(GPIOE, 1);
+                ui_event(b);
             }
 
             btn_state_old[b] = btn_state[b];
@@ -124,10 +157,137 @@ void ui_poll(void)
             ui_btn[b]--;
 
             // Perform button pressed action
-            // TODO
-            delay_ms(10);
-            gpio_reset(GPIOE, 1);
+            ui_event(b);
         }
+    }
+}
+
+void ui_event(uint8_t b)
+{
+    // Will be called for each button press, if it is being held down this event fires repeatedly
+    // Button layout:
+    // 0                       4
+    // 1                       5
+    // 2                       6
+    // 3                       7
+
+    // Modify variables as appropriate
+    switch (b)
+    {
+        case 0:
+            // Move cursor left one position
+            if (cursorPosition < CP_CURSOR_LIM_UPR && currentMode == CONSTANT_POWER)
+                cursorPosition *= 10;
+            if (cursorPosition < CC_CURSOR_LIM_UPR && currentMode == CONSTANT_CURRENT)
+                cursorPosition *= 10;
+            if (cursorPosition < CV_CURSOR_LIM_UPR && currentMode == CONSTANT_VOLTAGE)
+                cursorPosition *= 10;
+            if (cursorPosition < CR_CURSOR_LIM_UPR && currentMode == CONSTANT_RESISTANCE)
+                cursorPosition *= 10;
+            break;
+        case 1:
+            // Move cursor right one position
+            if (cursorPosition > CP_CURSOR_LIM_LWR && currentMode == CONSTANT_POWER)
+                cursorPosition /= 10;
+            if (cursorPosition > CC_CURSOR_LIM_LWR && currentMode == CONSTANT_CURRENT)
+                cursorPosition /= 10;
+            if (cursorPosition > CV_CURSOR_LIM_LWR && currentMode == CONSTANT_VOLTAGE)
+                cursorPosition /= 10;
+            if (cursorPosition > CR_CURSOR_LIM_LWR && currentMode == CONSTANT_RESISTANCE)
+                cursorPosition /= 10;
+            break;
+        case 2:
+            // Increase digit
+            if (cursorOn && currentMode == CONSTANT_POWER)
+                powerSet += cursorPosition;
+            if (cursorOn && currentMode == CONSTANT_CURRENT)
+                currentSet += cursorPosition;
+            if (cursorOn && currentMode == CONSTANT_VOLTAGE)
+                voltageSet += cursorPosition;
+            if (cursorOn && currentMode == CONSTANT_RESISTANCE)
+                resistanceSet += cursorPosition;
+            break;
+        case 3:
+            // Decrease digit
+            if (cursorOn && currentMode == CONSTANT_POWER)
+                powerSet -= cursorPosition;
+            if (cursorOn && currentMode == CONSTANT_CURRENT)
+                currentSet -= cursorPosition;
+            if (cursorOn && currentMode == CONSTANT_VOLTAGE)
+                voltageSet -= cursorPosition;
+            if (cursorOn && currentMode == CONSTANT_RESISTANCE)
+                resistanceSet -= cursorPosition;
+            break;
+        case 4:
+            // Toggle mode (CP/CC/CV/CR)
+            switch (currentMode)
+            {
+                case CONSTANT_POWER:
+                    currentMode = CONSTANT_CURRENT;
+                    break;
+                case CONSTANT_CURRENT:
+                    currentMode = CONSTANT_VOLTAGE;
+                    break;
+                case CONSTANT_VOLTAGE:
+                    currentMode = CONSTANT_RESISTANCE;
+                    break;
+                case CONSTANT_RESISTANCE:
+                    currentMode = CONSTANT_POWER;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case 5:
+            // Reserved for future use
+            break;
+        case 6:
+            // Cursor on/off
+            if (cursorOn == 0)
+                cursorOn = 1;
+            else
+                cursorOn = 0;
+            break;
+        case 7:
+            // Load on/off
+            if (loadOn == 0)
+                loadOn = 1;
+            if (loadOn == 1)
+                loadOn = 0;
+            break;
+        default:
+            break;
+    }
+    
+    // Update the display
+    switch (currentMode)
+    {
+        case CONSTANT_POWER:
+            sprintf((char *)lcd_l1, "V: %6.2f V | %6.2f", voltageMeas, powerSet);
+            sprintf((char *)lcd_l2, "I: %5.3f A |      W", currentMeas);
+            sprintf((char *)lcd_l3, "%6.2f W | B %3d%%", (voltageMeas * currentMeas), batteryPercentage);
+            sprintf((char *)lcd_l4, "CP    0-500V,0-1A");
+            break;
+        case CONSTANT_CURRENT:
+            sprintf((char *)lcd_l1, "V: %6.2f V | %5.3f", voltageMeas, currentSet);
+            sprintf((char *)lcd_l2, "I: %5.3f A |      W", currentMeas);
+            sprintf((char *)lcd_l3, "%6.2f W | B %3d%%", (voltageMeas * currentMeas), batteryPercentage);
+            sprintf((char *)lcd_l4, "CC    0-500V,0-1A");
+            break;
+        case CONSTANT_VOLTAGE:
+            sprintf((char *)lcd_l1, "V: %6.2f V | %6.2f", voltageMeas, voltageSet);
+            sprintf((char *)lcd_l2, "I: %5.3f A |      W", currentMeas);
+            sprintf((char *)lcd_l3, "%6.2f W | B %3d%%", (voltageMeas * currentMeas), batteryPercentage);
+            sprintf((char *)lcd_l4, "CV    0-500V,0-1A");
+            break;
+        case CONSTANT_RESISTANCE:
+            sprintf((char *)lcd_l1, "V: %6.2f V | %5d", voltageMeas, resistanceSet);
+            sprintf((char *)lcd_l2, "I: %5.3f A |      W", currentMeas);
+            sprintf((char *)lcd_l3, "%6.2f W | B %3d%%", (voltageMeas * currentMeas), batteryPercentage);
+            sprintf((char *)lcd_l4, "CR    0-500V,0-1A");
+            break;
+        default:
+            break;
     }
 }
 
